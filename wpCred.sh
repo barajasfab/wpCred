@@ -6,10 +6,10 @@ echo       :::::: WordPress Configuration ::::::
 echo       :::::::::::::::::::::::::::::::::::::
 echo
 
-dbName=$(cat wp-config.php | grep "define('DB_NAME" | awk -F"'" '{print $4}')
-dbUser=$(cat wp-config.php | grep "define('DB_USER" | awk -F"'" '{print $4}')
-dbPass=$(cat wp-config.php | grep "define('DB_PASSWORD" | awk -F"'" '{print $4}')
-dbHost=$(cat wp-config.php | grep "define('DB_HOST" | awk -F"'" '{print $4}')
+dbName=$(cat wp-config.php | grep "DB_NAME" | awk -F"'" '{print $4}')
+dbUser=$(cat wp-config.php | grep "DB_USER" | awk -F"'" '{print $4}')
+dbPass=$(cat wp-config.php | grep "DB_PASSWORD" | awk -F"'" '{print $4}')
+dbHost=$(cat wp-config.php | grep "DB_HOST" | awk -F"'" '{print $4}')
 
 ### get the table prefix
 prefix=$(grep "table_prefix" wp-config.php | awk -F"'" '{print $2}');

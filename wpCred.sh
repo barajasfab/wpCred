@@ -1,15 +1,50 @@
 #!/bin/bash
 
-echo
-echo       :::::::::::::::::::::::::::::::::::::
-echo       :::::: WordPress Configuration ::::::
-echo       :::::::::::::::::::::::::::::::::::::
-echo
+#set -x
 
 dbName=$(cat wp-config.php | grep "DB_NAME" | awk -F"'" '{print $4}')
 dbUser=$(cat wp-config.php | grep "DB_USER" | awk -F"'" '{print $4}')
 dbPass=$(cat wp-config.php | grep "DB_PASSWORD" | awk -F"'" '{print $4}')
-dbHost=$(cat wp-config.php | grep "DB_HOST" | awk -F"'" '{print $4}')
+
+## get tempSiteID
+tempSiteID=$(echo $HOME | awk -F"/" '{print $3}');
+
+#####################################
+## setting new functions for grep ###
+#####################################
+function grepLocal(){
+  dbHost=$( grep -i -o localhost wp-config.php);
+}
+## grepping for php enviro database server
+function grepEnviro(){
+  dbHost=$(grep -E -i -o ENV{\'DATABASE_SERVER\'} wp-config.php);
+}
+## grep to see if it's external ##
+function grepDB(){
+  dbHost=$(grep "DB_HOST" wp-config.php | awk -F"'" '{print $4}' )
+}
+
+################################
+## database selection output  ##
+################################
+grepLocal;
+
+if [ "$dbHost" != "localhost" ];then
+  grepEnviro;
+  if [ "$dbHost" != "ENV{'DATABASE_SERVER'}" ];then
+    grepDB;
+    if [ "$dbHost" != "internal-db.s165169.gridserver.com"  ]; then
+      printf "\n\nYou may want to check your database host.\n\n";
+    else
+      printf "\n\nEverything looks good.\n\n";
+    fi  
+  else
+    printf "\n\nYou are currently using the PHP enviro variable for database server.\n\n";
+  fi
+else
+  printf "\n\nYour database server is set as localhost.\n\n";
+fi
+
 
 ### get the table prefix
 prefix=$(grep "table_prefix" wp-config.php | awk -F"'" '{print $2}');
@@ -23,31 +58,17 @@ echo Current DB User: $dbUser
 echo ---------------------------------------------------------
 echo Current DB Pass: $dbPass
 echo ---------------------------------------------------------
-echo Current DB host: $dbHost
+	if [ "$dbHost" == "ENV{'DATABASE_SERVER'}" ]; then
+		echo Current DB host: \$${dbHost};
+	else
+		echo Current DB host: $dbHost;
+	fi
 echo ---------------------------------------------------------
 echo Current DB prefix: $prefix
 echo ---------------------------------------------------------
 
-
-#get true internal-db host name
-#this will get the site ID as just a numeral
-tempSiteID=$(echo $HOME | awk -F'/' '{print $3}')
-
-#make is internal-db.s######.gridserver.com
-siteID=internal-db.s${tempSiteID}.gridserver.com
-
-
-###  Checking to see how the database host is set up ###
-if [ "$dbHost" == "$siteID" ]; then
-	printf "\nDB host looks right. Either way, we are using $siteID\n";
-elif [ "$dbHost" == "external-db.s${tempSiteID}.gridserver.com" ]; then
-	printf "\nYou may want to use internal-db.s${tempSiteID}.griderver.com";
-elif [ "$dbHost" == '$_ENV['DATABASE_SERVER']' ]; then
-	printf "\nDatabase host set with PHP enviroment variable.";
-else
-	echo "You may need to edit your database hostname!!!";
-	echo "Either way, we are using $siteID";
-fi
+## set the dbHost back to internal-db.sxxxxxx.gridserver.com
+siteID="internal-db.s${tempSiteID}.gridserver.com";
 
 ########################################
 #######   COMPARE NEW INPUT   ##########
@@ -101,7 +122,7 @@ runagain=true;
             	newURL="${siteurl}";    
             	runagain=false;
             else
-            	printf "You need to start with http:// or https://\n";
+            	printf "ERROR! You need to start with http:// or https://\n";
             	runagain=true;
             fi  
 	done
@@ -232,7 +253,7 @@ function dbConnect(){
 		while [ $keepRun ]
 		do
 			printf "\nWhat would you like to do?\n";
-			printf "(a) Check siteurl and home:\n(b) Update siteurl and home:\n(c) Reset admin password:\n(q) Exit:\n";
+			printf "(a) Check siteurl and home:\n(b) Update siteurl and home:\n(c) Reset admin password:\n(q) Exit:\n"
 			printf "Please enter your selection:"
 				read choice;
 			if [ "$choice" == "a" ]; then
@@ -279,5 +300,3 @@ else
 	printf "\nPlease enter in a valid response.\n";
 fi
 done
-
-

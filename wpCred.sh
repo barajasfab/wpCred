@@ -244,8 +244,76 @@ function setURL(){
 }
 
 
+##################################################
+### This create sets a default htaccess file  ####
+##################################################
+
+function htaccessDefault(){
+
+########################################################################################
+### This will create the new .htaccess file and set the rewrite rules for permalinks ###
+########################################################################################
+function permalink(){
+        echo "# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress" > .htaccess;
+}
+
+########################################################
+#######     rename the existing .htaccess file   #######
+########################################################
+
+
+#lets search for a .htaccess file.
+        if [ "$(ls -a .htaccess 2> /dev/null)" == ".htaccess" ]; then
+                printf "\n.htaccess file found. Would you like to back it up and set a default .htaccess with permalink rules?: ";
+                echo "y\n?";
+                        himus=true;
+                        while [ "$himus" == true ]
+                        do
+                        read setHtaccess;
+                                if [ "$setHtaccess" == "y" ];then
+                                        himus=false
+                                        mv .htaccess .htaccess.mtbak;
+                                        permalink;
+                                elif [ "$setHtaccess" == "n" ]; then
+                                        himus=false
+                                        read -t 2 -p "See you later dude.";
+                                        break;
+                                else
+                                        echo "You need to enter in valid choice: y\n?";
+                                fi
+                        done
+        else
+		printf "\nNo .htaccess file found. Did you want to create a default .htaccess file with permilink rules: ";
+                echo "y\n?";
+                        himus=true;
+                        while [ "$himus" == true ]
+                        do
+                        read newHtaccess;
+                                if [ "$newHtaccess" == "y" ];then
+                                        himus=false
+                                        permalink;
+                                elif [ "$newHtaccess" == "n" ]; then
+                                        himus=false
+                                        read -t 1 -p "Ok, whatever you want.";
+                                        break;
+                                else
+                                        echo "You need to enter in valid choice: y\n?";
+                                fi
+                        done
+        fi
+}
+
 ##############################################
-### create new function for mysql changes ####
+### Get the users input for secondary menu ###
 ##############################################
 
 function dbConnect(){
@@ -253,7 +321,7 @@ function dbConnect(){
 		while [ $keepRun ]
 		do
 			printf "\nWhat would you like to do?\n";
-			printf "(a) Check siteurl and home:\n(b) Update siteurl and home:\n(c) Reset admin password:\n(q) Exit:\n"
+			printf "(a) Check siteurl and home:\n(b) Update siteurl and home:\n(c) Reset admin password:\n(d) Set default .htaccess file with permalinks:\n(q) Exit:\n"
 			printf "Please enter your selection:"
 				read choice;
 			if [ "$choice" == "a" ]; then
@@ -261,8 +329,9 @@ function dbConnect(){
 			elif [ "$choice" == "b" ]; then 
 				getLocation;
 			elif [ "$choice" == "c" ]; then
-				echo "This function is still in dev mode. It should work though.";
 				setpass;
+			elif [ "$choice" == "d" ]; then
+				htaccessDefault;
 			elif [ "$choice" == "q" ]; then
 				echo "You are about to exit dude...";
 				read -t 1 nothing;
@@ -282,7 +351,7 @@ valid=false;
 while [ $valid != true ]
 do
 ###  Do you want to connect to the database
-printf "\n\nDo you want to connect to the database?\n";
+printf "\n\nDo you want to make some edits to this site's configuration?\n";
 echo "y\n?"
 read response;
 

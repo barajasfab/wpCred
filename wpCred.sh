@@ -9,6 +9,9 @@ dbPass=$(cat wp-config.php | grep "DB_PASSWORD" | awk -F"'" '{print $4}')
 ## get tempSiteID
 tempSiteID=$(echo $HOME | awk -F"/" '{print $3}');
 
+## set the dbHost back to internal-db.sxxxxxx.gridserver.com
+siteID="internal-db.s${tempSiteID}.gridserver.com";
+
 #####################################
 ## setting new functions for grep ###
 #####################################
@@ -24,27 +27,93 @@ function grepDB(){
   dbHost=$(grep "DB_HOST" wp-config.php | awk -F"'" '{print $4}' )
 }
 
+#####################################
+###  Switch DB host in wp-config  ###
+#####################################
+function switchDB(){
+	sed -i "/.*DB_HOST.*/c\define('DB_HOST','${siteID}');" ./wp-config.php;
+}
+
 ################################
 ## database selection output  ##
 ################################
 grepLocal;
 
+######################################
+### used to output current DB host ###
+######################################
+function prelimHostCheck(){
 if [ "$dbHost" != "localhost" ];then
-  grepEnviro;
-  if [ "$dbHost" != "ENV{'DATABASE_SERVER'}" ];then
-    grepDB;
-    if [ "$dbHost" != "internal-db.s165169.gridserver.com"  ]; then
-      printf "\n\nYou may want to check your database host.\n\n";
-    else
-      printf "\n\nEverything looks good.\n\n";
-    fi  
-  else
-    printf "\n\nYou are currently using the PHP enviro variable for database server.\n\n";
-  fi
+    grepEnviro;
+        if [ "$dbHost" != "ENV{'DATABASE_SERVER'}" ];then
+           grepDB;
+              if [ "$dbHost" != "external-db.s${tempSiteID}.gridserver.com" ]; then
+					if [ "$dbHost" != "${siteID}" ]; then
+						printf "You may want to check your database host";
+					else
+						break;
+					fi
+              else
+                   break;
+              fi  
+        else
+	       break;
+        fi
 else
-  printf "\n\nYour database server is set as localhost.\n\n";
+    break;
 fi
+}
 
+prelimHostCheck;
+
+################################
+#####   check db host   ########
+################################
+function checkHost(){
+if [ "$dbHost" != "localhost" ];then
+    grepEnviro;
+       if [ "$dbHost" != "ENV{'DATABASE_SERVER'}" ];then
+          grepDB;
+              if [ "$dbHost" != "${siteID}"  ]; then
+                   printf "\n\nYou may want to check your database host.\n";
+		runMore=true;
+		while [ "$runMore" == true ]
+		do
+		   read -p "Would you like to switch it to ${siteID}: y\n?" switch;
+			if [ "$switch" == "y" ]; then
+				runMore=false;
+				switchDB;
+			elif [ "$switch" == "n" ]; then
+				printf "Ok, but it may not work properly.\n";
+				runMore=false;
+			else
+				printf "Please enter in a valid choice.";
+			fi
+		done
+              else
+                   printf "\n\nEverything looks good.\n\n";
+              fi  
+       else
+	    printf "\n\nYou are currently using the PHP enviro variable for database server.\n\n";
+      fi
+else
+    printf "\n\nYour database server is set as localhost.\n";
+	runMore=true;
+                while [ "$runMore" == true ]
+                do  
+                   read -p "Would you like to switch it to ${siteID}: y\n?" switch;
+                        if [ "$switch" == "y" ]; then
+                                runMore=false;
+                                switchDB;
+                        elif [ "$switch" == "n" ]; then
+                                printf "Ok, but it may not work properly.\n";
+                                runMore=false;
+                        else
+                                printf "Please enter in a valid choice.";
+                        fi  
+                done
+fi
+}
 
 ### get the table prefix
 prefix=$(grep "table_prefix" wp-config.php | awk -F"'" '{print $2}');
@@ -67,8 +136,8 @@ echo ---------------------------------------------------------
 echo Current DB prefix: $prefix
 echo ---------------------------------------------------------
 
-## set the dbHost back to internal-db.sxxxxxx.gridserver.com
-siteID="internal-db.s${tempSiteID}.gridserver.com";
+## check the db host
+checkHost;
 
 ########################################
 #######   COMPARE NEW INPUT   ##########
@@ -149,7 +218,6 @@ runmore=true;
 ########################################
 
 function setpass(){
-#set -x
 #display list of users and their ID's
 mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "SELECT ID, user_login, user_pass, user_status, display_name FROM ${prefix}users;"
 #while loop to run through menu
@@ -332,6 +400,8 @@ function dbConnect(){
 				setpass;
 			elif [ "$choice" == "d" ]; then
 				htaccessDefault;
+			elif [ "$choice" == "e" ]; then
+				alterDBHost;
 			elif [ "$choice" == "q" ]; then
 				echo "You are about to exit dude...";
 				read -t 1 nothing;
@@ -351,9 +421,7 @@ valid=false;
 while [ $valid != true ]
 do
 ###  Do you want to connect to the database
-printf "\n\nDo you want to make some edits to this site's configuration?\n";
-echo "y\n?"
-read response;
+read -p "Do you want to make some edits to this site's configuration?y\n: " response;
 
 if [ "$response" == "y" ]; then
  	dbConnect 

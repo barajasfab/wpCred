@@ -20,7 +20,7 @@ function grepLocal(){
 }
 ## grepping for php enviro database server
 function grepEnviro(){
-  dbHost=$(grep -E -i -o ENV{\'DATABASE_SERVER\'} wp-config.php);
+  dbHost=$(grep -E -i -o _ENV{\'DATABASE_SERVER\'} wp-config.php);
 }
 ## grep to see if it's external ##
 function grepDB(){
@@ -34,6 +34,15 @@ function switchDB(){
 	sed -i "/.*DB_HOST.*/c\define('DB_HOST','${siteID}');" ./wp-config.php;
 }
 
+#####################################
+#####  Create phpinfo page    #######
+#####################################
+function phpInfo(){
+		echo "<?php
+	phpinfo();
+?>" > ./phpinfo.php
+}
+
 ################################
 ## database selection output  ##
 ################################
@@ -45,7 +54,7 @@ grepLocal;
 function prelimHostCheck(){
 if [ "$dbHost" != "localhost" ];then
     grepEnviro;
-        if [ "$dbHost" != "ENV{'DATABASE_SERVER'}" ];then
+        if [ "$dbHost" != "_ENV{'DATABASE_SERVER'}" ];then
            grepDB;
               if [ "$dbHost" != "external-db.s${tempSiteID}.gridserver.com" ]; then
 					if [ "$dbHost" != "${siteID}" ]; then
@@ -72,7 +81,7 @@ prelimHostCheck;
 function checkHost(){
 if [ "$dbHost" != "localhost" ];then
     grepEnviro;
-       if [ "$dbHost" != "ENV{'DATABASE_SERVER'}" ];then
+       if [ "$dbHost" != "_ENV{'DATABASE_SERVER'}" ];then
           grepDB;
               if [ "$dbHost" != "${siteID}"  ]; then
                    printf "\n\nYou may want to check your database host.\n";
@@ -127,7 +136,7 @@ echo Current DB User: $dbUser
 echo ---------------------------------------------------------
 echo Current DB Pass: $dbPass
 echo ---------------------------------------------------------
-	if [ "$dbHost" == "ENV{'DATABASE_SERVER'}" ]; then
+	if [ "$dbHost" == "_ENV{'DATABASE_SERVER'}" ]; then
 		echo Current DB host: \$${dbHost};
 	else
 		echo Current DB host: $dbHost;
@@ -320,9 +329,19 @@ function disablePlugin(){
 		mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "UPDATE wp_options SET option_value = 'a:0:{}' WHERE option_name = 'active_plugins';"
 }
 
+function dbBackup(){
+		date=$(date +%Y-%m-%d);
+		sqlName=$(echo $dbName | awk -F"_" '{print $2}');
+			mysqldump --add-drop-table -u $dbUser -h $siteID --password=$dbPass $dbName > ${sqlName}${date}.sql ;
+		printf "\n\nYour database has been exported to ${sqlName}${date}.sql\n";
+}
+
+function repairDB(){
+		mysqlcheck -ca --auto-repair -o -u $dbUser -h $siteID --password=$dbPass $dbName ;
+}
 
 ##################################################
-### This create sets a default htaccess file  ####
+### This create sets a default .htaccess file  ###
 ##################################################
 
 function htaccessDefault(){
@@ -398,7 +417,7 @@ function dbConnect(){
 		while [ $keepRun ]
 		do
 			printf "\nWhat would you like to do?\n";
-			printf "(a) Check siteurl and home:\n(b) Update siteurl and home:\n(c) Reset admin password:\n(d) Set default .htaccess file with permalinks:\n(f) Check database size:\n(g) Disable all plugins:\n(q) Exit:\n"
+			printf "(a) Check siteurl and home:\n(b) Update siteurl and home:\n(c) Reset admin password:\n(d) Default .htaccess file with permalinks:\n(e) Create database backup:\n(f) Check database size:\n(g) Disable all plugins:\n(h) Create phpinfo page:\n(i) Repair/Optimize database:\n(q) Exit:\n"
 			printf "Please enter your selection:"
 				read choice;
 			if [ "$choice" == "a" ]; then
@@ -410,12 +429,16 @@ function dbConnect(){
 			elif [ "$choice" == "d" ]; then
 				htaccessDefault;
 			elif [ "$choice" == "e" ]; then
-				alterDBHost;
+				dbBackup;
 			elif [ "$choice" == "f" ]; then
 				checkDBSize;
 			elif [ "$choice" == "g" ]; then
 				disablePlugin;
+			elif [ "$choice" == "h" ]; then
+				phpInfo;
 					printf "\nYour plug-ins have been disabled.\n";
+			elif [ "$choice" == "i" ]; then
+				repairDB;
 			elif [ "$choice" == "q" ]; then
 				echo "You are about to exit dude...";
 				read -t 1 nothing;

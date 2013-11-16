@@ -313,7 +313,11 @@ function setURL(){
 
 function checkDBSize(){
         mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "SELECT table_name 'Table', table_rows 'Rows', data_length 'Data Length', index_length 'Index Length', round(((data_length + index_length) / 1024 / 1024),2) 'Size in MB' FROM information_schema.TABLES WHERE table_schema = '$dbName';";
-	mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "SELECT table_schema 'Database', sum( data_length + index_length) / 1024 / 1024 'Size in MB' FROM information_schema.TABLES WHERE table_schema = '$dbName';"
+		mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "SELECT table_schema 'Database', sum( data_length + index_length) / 1024 / 1024 'Size in MB' FROM information_schema.TABLES WHERE table_schema = '$dbName';"
+}
+
+function disablePlugin(){
+		mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "UPDATE wp_options SET option_value = 'a:0:{}' WHERE option_name = 'active_plugins';"
 }
 
 
@@ -394,7 +398,7 @@ function dbConnect(){
 		while [ $keepRun ]
 		do
 			printf "\nWhat would you like to do?\n";
-			printf "(a) Check siteurl and home:\n(b) Update siteurl and home:\n(c) Reset admin password:\n(d) Set default .htaccess file with permalinks:\n(f) Check database size:\n(q) Exit:\n"
+			printf "(a) Check siteurl and home:\n(b) Update siteurl and home:\n(c) Reset admin password:\n(d) Set default .htaccess file with permalinks:\n(f) Check database size:\n(g) Disable all plugins:\n(q) Exit:\n"
 			printf "Please enter your selection:"
 				read choice;
 			if [ "$choice" == "a" ]; then
@@ -409,6 +413,9 @@ function dbConnect(){
 				alterDBHost;
 			elif [ "$choice" == "f" ]; then
 				checkDBSize;
+			elif [ "$choice" == "g" ]; then
+				disablePlugin;
+					printf "\nYour plug-ins have been disabled.\n";
 			elif [ "$choice" == "q" ]; then
 				echo "You are about to exit dude...";
 				read -t 1 nothing;

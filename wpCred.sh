@@ -326,7 +326,8 @@ function checkDBSize(){
 }
 
 function disablePlugin(){
-		mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "UPDATE wp_options SET option_value = 'a:0:{}' WHERE option_name = 'active_plugins';"
+		mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "UPDATE wp_options SET option_value = 'a:0:{}' WHERE option_name = 'active_plugins';";
+		printf "\nYour plug-ins have been disabled.\n";
 }
 
 function dbBackup(){
@@ -436,7 +437,6 @@ function dbConnect(){
 				disablePlugin;
 			elif [ "$choice" == "h" ]; then
 				phpInfo;
-					printf "\nYour plug-ins have been disabled.\n";
 			elif [ "$choice" == "i" ]; then
 				repairDB;
 			elif [ "$choice" == "q" ]; then

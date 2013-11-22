@@ -11,6 +11,6 @@ Get wp-config.php file details with options for the following:
 
 REMINDER - It is always best practice to produce a backup of your website and database prior to implementing any change to ensure it can be undone.
 
-This is for use on (mt) Media Temple's GRID Server. Just log into your server via SSH, change directories into which ever domain you need to alter, and run the script on the same level as you wp-config.php file. 
+This is for use on (mt) Media Temple's GRID Server. Just log into your server via SSH, change directories into which ever domain you need to alter, and run the script on the same level as your wp-config.php file. 
 
 This script is still in active development. If you find any bugs, please email the issue to bugreport@trekmode.com

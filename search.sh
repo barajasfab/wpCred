@@ -7,12 +7,15 @@ runagain=true;
     do
 
         echo "Enter in the domain name you want to alter:";
+        echo "Enter 1 to view listed domains:";
         echo "Enter 0 to quit:";
         read domain;
         
     if [ "$domain" == "0" ];then
         printf "\nSee you later Bro Montana!\n";
         runagain=false;
+    elif [ "$domain" == "1" ];then
+        find ~/domains/ -maxdepth 1 -type d | awk -F'/' '{print $7}' | sort -n;
     else
         echo "you selected $domain"
         located=$(find ~/domains/ -maxdepth 2 -type d -name ${domain} 2> /dev/null;)

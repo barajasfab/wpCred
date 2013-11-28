@@ -530,7 +530,7 @@ runagain=true;
         listDomains;
     else
         echo "you selected $domain"
-        located=$(find ~/domains/ -maxdepth 2 -type d -name ${domain} 2> /dev/null;)
+        located=$(find ~/domains/ -maxdepth 1 -type d -name ${domain} 2> /dev/null;)
 
         if [ "$located" == "$HOME/domains/${domain}" ]; then
             # this will be used to 

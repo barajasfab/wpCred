@@ -1,5 +1,15 @@
 #!/bin/bash
 
+## set working directory. 
+function setD(){
+	pushd .
+}
+## jump back to origin directory and rm script
+function rmScript(){
+	popd;
+	rm $0;
+}
+
 #set -x
 function wpScript(){
 dbName=$(cat wp-config.php | grep "DB_NAME" | awk -F"'" '{print $4}')
@@ -442,6 +452,7 @@ function dbConnect(){
 			elif [ "$choice" == "q" ]; then
 				echo "You are about to exit dude...";
 				read -t 1 nothing;
+				rmScript;
 				exit;
 			else
 				printf "\nPlease enter in a valid choice:\n";
@@ -469,6 +480,7 @@ elif [ "$response" == "n" ]; then
 	valid=true;
 	printf "\nOk, see you later.\n";
 	read -t 1 p
+	rmScript;
 else
 	valid=false;
 	printf "\nPlease enter in a valid response.\n";
@@ -500,6 +512,7 @@ function cmsType(){
 
 #set -x
 #run a while loop for the inital menu asking for the domain. 
+setD;
 runagain=true;
     while [ "$runagain" == true ]
     do
@@ -512,6 +525,7 @@ runagain=true;
     if [ "$domain" == "0" ];then
         printf "\nSee you later Bro Montana!\n";
         runagain=false;
+		rmScript;
     elif [ "$domain" == "1" ];then
         listDomains;
     else

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #set -x
-
+function wpScript(){
 dbName=$(cat wp-config.php | grep "DB_NAME" | awk -F"'" '{print $4}')
 dbUser=$(cat wp-config.php | grep "DB_USER" | awk -F"'" '{print $4}')
 dbPass=$(cat wp-config.php | grep "DB_PASSWORD" | awk -F"'" '{print $4}')
@@ -60,16 +60,16 @@ if [ "$dbHost" != "localhost" ];then
 					if [ "$dbHost" != "${siteID}" ]; then
 						printf "You may want to check your database host";
 					else
-						break;
+						echo "";
 					fi
               else
-                   break;
+				  echo "";
               fi  
         else
-	       break;
+		      echo "";
         fi
 else
-    break;
+	echo "";
 fi
 }
 
@@ -474,3 +474,61 @@ else
 	printf "\nPlease enter in a valid response.\n";
 fi
 done
+}
+
+#!/bin/bash
+
+function listDomains(){
+     find ~/domains/ -maxdepth 1 -type d | awk -F'/' '{print $7}' | sort -n;  
+}
+
+function cmsType(){
+       cmsFile=$(find ./ -maxdepth 2 -type f -name wp-config.php 2> /dev/null);
+            if [ "$cmsFile" == "" ];then
+                echo "no wp-config.php found. Search for different CMS";
+			elif [ "$cmsFile" == "./wp-config.php" ];then
+			#	touch testFile;
+				wpScript;
+            elif [ "$cmsFile" == "./html/wp-config.php" ];then
+				cd html;
+			#	touch testFile;
+				wpScript;
+			else
+            	echo "Nothing was located. Oops.";    
+            fi
+}    
+
+#set -x
+#run a while loop for the inital menu asking for the domain. 
+runagain=true;
+    while [ "$runagain" == true ]
+    do
+		echo "";
+        echo "Enter in the domain name you want to alter:";
+        echo "Enter 1 to view listed domains:";
+        echo "Enter 0 to quit:";
+        read domain;
+        
+    if [ "$domain" == "0" ];then
+        printf "\nSee you later Bro Montana!\n";
+        runagain=false;
+    elif [ "$domain" == "1" ];then
+        listDomains;
+    else
+        echo "you selected $domain"
+        located=$(find ~/domains/ -maxdepth 2 -type d -name ${domain} 2> /dev/null;)
+
+        if [ "$located" == "$HOME/domains/${domain}" ]; then
+            # this will be used to 
+            echo "Located the following path: ${located}";
+            cd ${located};
+           ## Need to check where the wp-config,php file is located
+		   cmsType;
+           runagain=false;
+        else
+            echo "Dude, nothing was located for ${domain}";
+            echo "Please try again";
+            runagain=true;
+        fi
+    fi
+    done

@@ -15,27 +15,13 @@ function wpScript(){
 dbName=$(cat wp-config.php | grep "DB_NAME" | awk -F"'" '{print $4}')
 dbUser=$(cat wp-config.php | grep "DB_USER" | awk -F"'" '{print $4}')
 dbPass=$(cat wp-config.php | grep "DB_PASSWORD" | awk -F"'" '{print $4}')
+dbHost=$(grep -P -io "(localhost(:3306|)|[$]_ENV{('|)DATABASE_SERVER('|)}|(int|ext)ernal-db.s165169.gridserver.com)" wp-config.php);
 
 ## get tempSiteID
 tempSiteID=$(echo $HOME | awk -F"/" '{print $3}');
 
 ## set the dbHost back to internal-db.sxxxxxx.gridserver.com
 siteID="internal-db.s${tempSiteID}.gridserver.com";
-
-#####################################
-## setting new functions for grep ###
-#####################################
-function grepLocal(){
-  dbHost=$( grep -i -o localhost wp-config.php);
-}
-## grepping for php enviro database server
-function grepEnviro(){
-  dbHost=$(grep -E -i -o _ENV{\'DATABASE_SERVER\'} wp-config.php);
-}
-## grep to see if it's external ##
-function grepDB(){
-  dbHost=$(grep "DB_HOST" wp-config.php | awk -F"'" '{print $4}' )
-}
 
 #####################################
 ###  Switch DB host in wp-config  ###
@@ -53,49 +39,14 @@ function phpInfo(){
 ?>" > ./phpinfo.php
 }
 
-################################
-## database selection output  ##
-################################
-grepLocal;
-
 ######################################
 ### used to output current DB host ###
 ######################################
-function prelimHostCheck(){
-if [ "$dbHost" != "localhost" ];then
-    grepEnviro;
-        if [ "$dbHost" != "_ENV{'DATABASE_SERVER'}" ];then
-           grepDB;
-              if [ "$dbHost" != "external-db.s${tempSiteID}.gridserver.com" ]; then
-					if [ "$dbHost" != "${siteID}" ]; then
-						printf "You may want to check your database host";
-					else
-						echo "";
-					fi
-              else
-				  echo "";
-              fi  
-        else
-		      echo "";
-        fi
-else
-	echo "";
-fi
-}
-
-prelimHostCheck;
-
-################################
-#####   check db host   ########
-################################
-function checkHost(){
-if [ "$dbHost" != "localhost" ];then
-    grepEnviro;
-       if [ "$dbHost" != "_ENV{'DATABASE_SERVER'}" ];then
-          grepDB;
-              if [ "$dbHost" != "${siteID}"  ]; then
-                   printf "\n\nYou may want to check your database host.\n";
-		runMore=true;
+function databaseOutput(){
+## create case statments
+case $dbHost in
+    "localhost"|"localhost:3306") echo "DB_HOST is currently set as $dbHost. You should really change that."
+        runMore=true;
 		while [ "$runMore" == true ]
 		do
 		   read -p "Would you like to switch it to ${siteID}: y\n?" switch;
@@ -108,31 +59,12 @@ if [ "$dbHost" != "localhost" ];then
 			else
 				printf "Please enter in a valid choice.";
 			fi
-		done
-              else
-                   printf "\n\nEverything looks good.\n\n";
-              fi  
-       else
-	    printf "\n\nYou are currently using the PHP enviro variable for database server.\n\n";
-      fi
-else
-    printf "\n\nYour database server is set as localhost.\n";
-	runMore=true;
-                while [ "$runMore" == true ]
-                do  
-                   read -p "Would you like to switch it to ${siteID}: y\n?" switch;
-                        if [ "$switch" == "y" ]; then
-                                runMore=false;
-                                switchDB;
-                        elif [ "$switch" == "n" ]; then
-                                printf "Ok, but it may not work properly.\n";
-                                runMore=false;
-                        else
-                                printf "Please enter in a valid choice.";
-                        fi  
-                done
-fi
+		done;;
+    "\$_ENV{DATABASE_SERVER}"|"\$_ENV{'DATABASE_SERVER'}"|"internal-db.s${tempSiteID}.gridserver.com"|"external-db.s${tempSiteID}.gridserver.com") echo "DB_HOST is currently set as $dbHost.";;
+    "") echo "You may need to check your DB_HOST setting";;
+esac
 }
+
 
 ### get the table prefix
 prefix=$(grep "table_prefix" wp-config.php | awk -F"'" '{print $2}');
@@ -146,17 +78,12 @@ echo Current DB User: $dbUser
 echo ---------------------------------------------------------
 echo Current DB Pass: $dbPass
 echo ---------------------------------------------------------
-	if [ "$dbHost" == "_ENV{'DATABASE_SERVER'}" ]; then
-		echo Current DB host: \$${dbHost};
-	else
-		echo Current DB host: $dbHost;
-	fi
+echo Current DB Host: $dbHost
 echo ---------------------------------------------------------
 echo Current DB prefix: $prefix
 echo ---------------------------------------------------------
 
-## check the db host
-checkHost;
+databaseOutput;
 
 ########################################
 #######   COMPARE NEW INPUT   ##########
@@ -431,32 +358,22 @@ function dbConnect(){
 			printf "(a) Check siteurl and home:\n(b) Update siteurl and home:\n(c) Reset admin password:\n(d) Default .htaccess file with permalinks:\n(e) Create database backup:\n(f) Check database size:\n(g) Disable all plugins:\n(h) Create phpinfo page:\n(i) Repair/Optimize database:\n(q) Exit:\n"
 			printf "Please enter your selection:"
 				read choice;
-			if [ "$choice" == "a" ]; then
-				getURL;
-			elif [ "$choice" == "b" ]; then 
-				getLocation;
-			elif [ "$choice" == "c" ]; then
-				setpass;
-			elif [ "$choice" == "d" ]; then
-				htaccessDefault;
-			elif [ "$choice" == "e" ]; then
-				dbBackup;
-			elif [ "$choice" == "f" ]; then
-				checkDBSize;
-			elif [ "$choice" == "g" ]; then
-				disablePlugin;
-			elif [ "$choice" == "h" ]; then
-				phpInfo;
-			elif [ "$choice" == "i" ]; then
-				repairDB;
-			elif [ "$choice" == "q" ]; then
-				echo "You are about to exit dude...";
+			case $choice in
+			    "a") getURL;;
+			    "b") getLocation;;
+                "c") setpass;;
+			    "d") htaccessDefault;;
+			    "e") dbBackup;;
+			    "f") checkDBSize;;
+			    "g") disablePlugin;;
+			    "h") phpInfo;;
+			    "i") repairDB;;
+                "q") echo "You are about to exit dude...";
 				read -t 1 nothing;
 				rmScript;
-				exit;
-			else
-				printf "\nPlease enter in a valid choice:\n";
-			fi
+				exit;;
+			    *) echo "WHAT!?!?! I don't see an option for that. Try again please.";;
+			esac
 		done	
 }
 
@@ -472,10 +389,7 @@ do
 read -p "Do you want to make some edits to this site's configuration?y\n: " response;
 
 if [ "$response" == "y" ]; then
- 	dbConnect 
-	#valid=true;
-	#mysql
-	#mysql $dbName $dbUser $dbHost $dbPass
+ 	dbConnect; 
 elif [ "$response" == "n" ]; then
 	valid=true;
 	printf "\nOk, see you later.\n";

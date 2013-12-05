@@ -12,16 +12,16 @@ function rmScript(){
 
 #set -x
 function wpScript(){
-dbName=$(cat wp-config.php | grep "DB_NAME" | awk -F"'" '{print $4}')
-dbUser=$(cat wp-config.php | grep "DB_USER" | awk -F"'" '{print $4}')
-dbPass=$(cat wp-config.php | grep "DB_PASSWORD" | awk -F"'" '{print $4}')
-dbHost=$(grep -P -io "(localhost(:3306|)|[$]_ENV{('|)DATABASE_SERVER('|)}|(int|ext)ernal-db.s165169.gridserver.com)" wp-config.php);
-
 ## get tempSiteID
 tempSiteID=$(echo $HOME | awk -F"/" '{print $3}');
 
 ## set the dbHost back to internal-db.sxxxxxx.gridserver.com
 siteID="internal-db.s${tempSiteID}.gridserver.com";
+
+dbName=$(cat wp-config.php | grep "DB_NAME" | awk -F"'" '{print $4}')
+dbUser=$(cat wp-config.php | grep "DB_USER" | awk -F"'" '{print $4}')
+dbPass=$(cat wp-config.php | grep "DB_PASSWORD" | awk -F"'" '{print $4}')
+dbHost=$(grep -P -io "(localhost(:3306|)|[$]_ENV{('|)DATABASE_SERVER('|)}|(int|ext)ernal-db.s${tempSiteID}.gridserver.com)" wp-config.php);
 
 #####################################
 ###  Switch DB host in wp-config  ###

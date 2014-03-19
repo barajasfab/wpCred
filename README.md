@@ -1,7 +1,7 @@
 wpCred
 ======
 
-Get wp-config.php file details with options for the following:
+Get wp-config.php file details and options for the following:
 
 1. View siteurl and home
 2. Edit the siteurl and home
@@ -14,7 +14,7 @@ Get wp-config.php file details with options for the following:
 9. Repair and optimize database
 
 
-REMINDER - It is always best practice to produce a backup of your website and database prior to implementing any change to ensure it can be undone.
+REMINDER - It is always best practice to produce a backup of your website and database prior to implementing any change to ensure it can be undone. If you choose to use this script, you are doing so at your own risk and take full responsibility. 
 
 This is for use on (mt) Media Temple's GRID Server. Just log into your server via SSH and run the script.
 

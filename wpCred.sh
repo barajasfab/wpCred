@@ -424,39 +424,47 @@ function cmsType(){
             fi
 }    
 
+function listDomains(){
+	#get array listing
+	domList=$(find ~/domains/ -maxdepth 1 -type d | awk -F'/' '{print $7}' | sort -h);
+	#fill in array
+	domArray=($(for i in $domList; do echo $i; done ));
+	#output the array contents for the user to select from
+	for (( i=0; i<"${#domArray[@]}"; i++ ));
+	do
+		echo "$((${i}+1)): ${domArray[$i]}";
+	done
+	read -p "Please enter your choice: " domChoice;
+	cd ${HOME}/domains/${domArray[$((${domChoice}-1))]};
+	cmsType;
+}
+
 #set -x
 #run a while loop for the inital menu asking for the domain. 
 setD;
 runagain=true;
     while [ "$runagain" == true ]
     do
-		echo "";
         echo "Enter in the domain name you want to alter:";
-        echo "Enter 1 to view listed domains:";
-        echo "Enter 0 to quit:";
+        echo "Enter L to view listed domains:";
+        echo "Enter Q to quit:";
         read domain;
-        
-    if [ "$domain" == "0" ];then
-        printf "\nSee you later Bro Montana!\n";
-        runagain=false;
-		rmScript;
-    elif [ "$domain" == "1" ];then
-        listDomains;
-    else
-        echo "you selected $domain"
-        located=$(find ~/domains/ -maxdepth 1 -type d -name ${domain} 2> /dev/null;)
+      	 
+		#run through cases
+		case $domain in
+			"") printf "You need to actually enter something in. Try again\n\n";;
+			"l"|"L") listDomains;;
+			"q"|"Q") printf "\nSee you later Bro Montana!\n";
+					 runagain=false;
+					 rmScript;;
+			*) if [ -d "${HOME}/domains/${domain}" ];
+			   then
+			   		printf "\nDirectory located\n\n";
+					cd ${HOME}/domains/${domain};
+					cmsType;
+			   else
+			   		printf "\nThe Directory does not seem to exist. Try again.\n\n";
+			   fi;;
+		esac
 
-        if [ "$located" == "$HOME/domains/${domain}" ]; then
-            # this will be used to 
-            echo "Located the following path: ${located}";
-            cd ${located};
-           ## Need to check where the wp-config,php file is located
-		   cmsType;
-           runagain=false;
-        else
-            echo "Dude, nothing was located for ${domain}";
-            echo "Please try again";
-            runagain=true;
-        fi
-    fi
-    done
+	done

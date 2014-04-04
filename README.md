@@ -13,6 +13,8 @@ Get wp-config.php file details and options for the following:
 8. Create a php info page
 9. Repair and optimize database
 
+You can grab the scrtipt and run it directly on the server by running the following:
+wget http://dl.trekmode.com/wpCred.sh && sh ./wpCred.sh
 
 REMINDER - It is always best practice to produce a backup of your website and database prior to implementing any change to ensure it can be undone. If you choose to use this script, you are doing so at your own risk and take full responsibility. 
 

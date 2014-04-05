@@ -6,6 +6,9 @@ function setD(){
 }
 ## jump back to origin directory and rm script
 function rmScript(){
+    if [ "${wpUserSet}" == 'true' ]; then
+        delNewWpUser;
+    fi
 	popd;
 	rm $0;
 }
@@ -245,6 +248,35 @@ done
 }
 
 ########################################
+#######  CREATE NEW WP USER  ###########
+########################################
+function newUser(){
+wpUserset=true;
+loop2=true
+while [ ${loop2} == 'true' ];
+do
+#get the user's email address
+    read -p "please enter in an email address for this user: " userSetEmail;
+        case userSetEmail in
+            "") printf "Please try again\n";;
+            *) printf "Thank you.\n";
+               loop2=false;;
+        esac
+done
+#create hash based off of current date 
+rand=`date|md5sum|md5sum`;
+mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "INSERT INTO wp_users (user_login,user_pass,user_nicename,user_email,user_url,user_activation_key,user_status,display_name) VALUES ('wp_test${rand:15:5}',MD5('${rand:5:10}'),'wp_test${rand:15:5}','${userSetEmail}','','','0','Testing Account');INSERT INTO wp_usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM wp_users WHERE user_login='wp_test${rand:15:5}'),'wp_capabilities','a:1:{s:13:\"administrator\";b:1;}');INSERT INTO wp_usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM wp_users WHERE user_login='wp_test${rand:15:5}'),'wp_user_level','10');";
+
+newWpUser="wp_test${rand:15:5}";
+printf "\nSQL has been run, username is wp_test${rand:15:5} and password is ${rand:5:10}\n\nPress enter to remove the user...\n";
+unset rand;
+read holdPoint;
+#remove the user
+mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "DELETE FROM wp_usermeta WHERE user_id=(SELECT ID FROM wp_users WHERE user_login='$newWpUser'); DELETE FROM wp_users WHERE user_login='$newWpUser' LIMIT 1;";
+unset $newWpUser
+}
+
+########################################
 ######  CREATE MySQL FUNCTIONS  ########
 ########################################
 
@@ -355,20 +387,35 @@ function dbConnect(){
 		while [ $keepRun ]
 		do
 			printf "\nWhat would you like to do?\n";
-			printf "(a) Check siteurl and home:\n(b) Update siteurl and home:\n(c) Reset admin password:\n(d) Default .htaccess file with permalinks:\n(e) Create database backup:\n(f) Check database size:\n(g) Disable all plugins:\n(h) Create phpinfo page:\n(i) Repair/Optimize database:\n(q) Exit:\n"
-			printf "Please enter your selection:"
+			cat <<- _EOF_
+			(a) Check siteurl and home:
+			(b) Update siteurl and home:
+			(c) Reset admin password:
+			(d) Create a temp WordPress user:
+			(e) Default .htaccess file with permalinks:
+			(f) Create database backup:
+			(g) Check database size:
+			(h) Disable all plugins:
+			(i) Create phpinfo page:
+			(j) Repair/Optimize database:
+			(q) Exit:
+			    
+			Please enter your selection:
+			_EOF_
 				read choice;
 			case $choice in
-			    "a") getURL;;
-			    "b") getLocation;;
-                "c") setpass;;
-			    "d") htaccessDefault;;
-			    "e") dbBackup;;
-			    "f") checkDBSize;;
-			    "g") disablePlugin;;
-			    "h") phpInfo;;
-			    "i") repairDB;;
-                "q") echo "You are about to exit dude...";
+			    "a"|"A") getURL;;
+			    "b"|"B") getLocation;;
+                "c"|"C") setpass;;
+				"d"|"D") newUser;;
+			    "e"|"E") htaccessDefault;;
+			    "f"|"F") dbBackup;;
+			    "g"|"G") checkDBSize;;
+			    "h"|"H") disablePlugin;;
+			    "i"|"I") phpInfo;;
+			    "j"|"J") repairDB;;
+				#"k"|"K") interactiveShell;;
+                "q"|"Q") echo "You are about to exit dude...";
 				read -t 1 nothing;
 				rmScript;
 				exit;;

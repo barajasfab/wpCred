@@ -6,7 +6,7 @@ function setD(){
 }
 ## jump back to origin directory and rm script
 function rmScript(){
-    if [ "${wpUserSet}" == 'true' ]; then
+    if [ "$wpUserSet" == true ]; then
         delNewWpUser;
     fi
 	popd;
@@ -251,7 +251,7 @@ done
 #######  CREATE NEW WP USER  ###########
 ########################################
 function newUser(){
-wpUserset=true;
+wpUserSet=true;
 loop2=true
 while [ ${loop2} == 'true' ];
 do
@@ -268,12 +268,15 @@ rand=`date|md5sum|md5sum`;
 mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "INSERT INTO wp_users (user_login,user_pass,user_nicename,user_email,user_url,user_activation_key,user_status,display_name) VALUES ('wp_test${rand:15:5}',MD5('${rand:5:10}'),'wp_test${rand:15:5}','${userSetEmail}','','','0','Testing Account');INSERT INTO wp_usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM wp_users WHERE user_login='wp_test${rand:15:5}'),'wp_capabilities','a:1:{s:13:\"administrator\";b:1;}');INSERT INTO wp_usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM wp_users WHERE user_login='wp_test${rand:15:5}'),'wp_user_level','10');";
 
 newWpUser="wp_test${rand:15:5}";
-printf "\nSQL has been run, username is wp_test${rand:15:5} and password is ${rand:5:10}\n\nPress enter to remove the user...\n";
+printf "\nSQL has been run, username is wp_test${rand:15:5} and password is ${rand:5:10}\n\n"; #Press enter to remove the user...\n";
 unset rand;
-read holdPoint;
-#remove the user
-mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "DELETE FROM wp_usermeta WHERE user_id=(SELECT ID FROM wp_users WHERE user_login='$newWpUser'); DELETE FROM wp_users WHERE user_login='$newWpUser' LIMIT 1;";
-unset $newWpUser
+}
+
+#delete the newly created user
+function delNewWpUser(){
+	mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "DELETE FROM wp_usermeta WHERE user_id=(SELECT ID FROM wp_users WHERE user_login='$newWpUser'); DELETE FROM wp_users WHERE user_login='$newWpUser' LIMIT 1;";	
+	#clean up the variable
+	unset $newWpUser
 }
 
 ########################################
@@ -406,8 +409,8 @@ function dbConnect(){
 			case $choice in
 			    "a"|"A") getURL;;
 			    "b"|"B") getLocation;;
-                "c"|"C") setpass;;
-				"d"|"D") newUser;;
+                	    "c"|"C") setpass;;
+			    "d"|"D") newUser;;
 			    "e"|"E") htaccessDefault;;
 			    "f"|"F") dbBackup;;
 			    "g"|"G") checkDBSize;;
@@ -415,7 +418,7 @@ function dbConnect(){
 			    "i"|"I") phpInfo;;
 			    "j"|"J") repairDB;;
 				#"k"|"K") interactiveShell;;
-                "q"|"Q") echo "You are about to exit dude...";
+                	    "q"|"Q") echo "You are about to exit dude...";
 				read -t 1 nothing;
 				rmScript;
 				exit;;

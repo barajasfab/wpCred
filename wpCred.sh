@@ -46,26 +46,26 @@ function phpInfo(){
 ### used to output current DB host ###
 ######################################
 function databaseOutput(){
-## create case statments
-case $dbHost in
-    "localhost"|"localhost:3306") echo "DB_HOST is currently set as $dbHost. You should really change that."
-        runMore=true;
-		while [ "$runMore" == true ]
-		do
-		   read -p "Would you like to switch it to ${siteID}: y\n?" switch;
-			if [ "$switch" == "y" ]; then
-				runMore=false;
-				switchDB;
-			elif [ "$switch" == "n" ]; then
-				printf "Ok, but it may not work properly.\n";
-				runMore=false;
-			else
-				printf "Please enter in a valid choice.";
-			fi
-		done;;
-    "\$_ENV{DATABASE_SERVER}"|"\$_ENV{'DATABASE_SERVER'}"|"internal-db.s${tempSiteID}.gridserver.com"|"external-db.s${tempSiteID}.gridserver.com") echo "DB_HOST is currently set as $dbHost.";;
-    "") echo "You may need to check your DB_HOST setting";;
-esac
+    ## create case statments
+    case $dbHost in
+        "localhost"|"localhost:3306") echo "DB_HOST is currently set as $dbHost. You should really change that."
+            runMore=true;
+    		while [ "$runMore" == true ]
+    		do
+    		   read -p "Would you like to switch it to ${siteID}: y\n?" switch;
+    			if [ "$switch" == "y" ]; then
+    				runMore=false;
+    				switchDB;
+    			elif [ "$switch" == "n" ]; then
+    				printf "Ok, but it may not work properly.\n";
+    				runMore=false;
+    			else
+    				printf "Please enter in a valid choice.";
+    			fi
+    		done;;
+        "\$_ENV{DATABASE_SERVER}"|"\$_ENV{'DATABASE_SERVER'}"|"internal-db.s${tempSiteID}.gridserver.com"|"external-db.s${tempSiteID}.gridserver.com") echo "DB_HOST is currently set as $dbHost.";;
+        "") echo "You may need to check your DB_HOST setting";;
+    esac
 }
 
 
@@ -93,7 +93,7 @@ databaseOutput;
 ########################################
 
 function checkInput(){
-loopAgain=true;
+    loopAgain=true;
 	while [ "$loopAgain" == true ]
 	do	
 		if [ "$1" == "$2" ];
@@ -129,37 +129,37 @@ loopAgain=true;
 ########################################
 
 function getLocation(){
-runagain=true;
-	while [ $runagain == true ]
-	do  
-		printf "Enter in the new siteurl:";
-		read siteurl;
-        	if [[ "$siteurl" == https://* ]] || [[ "$siteurl" == http://* ]]; 
-        	then
-            	printf "Thank you\n";
-            	newURL="${siteurl}";    
-            	runagain=false;
-            else
-            	printf "ERROR! You need to start with http:// or https://\n";
-            	runagain=true;
-            fi  
-	done
-runmore=true;
-	while [ $runmore == true ]
-	do  
-    	printf "\nEnter in the new home:";
-        read home;
-    		if [[ "$home" == https://* ]] || [[ "$home" == http://* ]]; 
-            then    
-            	printf "Thank you\n";
-                newHome="${home}"; 
-                runmore=false;
-            else
-                printf "You need to start with http:// or https://\n";
-                runmore=true;
-            fi  
-	done
-	checkInput $newURL $newHome;
+    runagain=true;
+    	while [ $runagain == true ]
+    	do  
+    		printf "Enter in the new siteurl:";
+    		read siteurl;
+            	if [[ "$siteurl" == https://* ]] || [[ "$siteurl" == http://* ]]; 
+            	then
+                	printf "Thank you\n";
+                	newURL="${siteurl}";    
+                	runagain=false;
+                else
+                	printf "ERROR! You need to start with http:// or https://\n";
+                	runagain=true;
+                fi  
+    	done
+    runmore=true;
+    	while [ $runmore == true ]
+    	do  
+        	printf "\nEnter in the new home:";
+            read home;
+        		if [[ "$home" == https://* ]] || [[ "$home" == http://* ]]; 
+                then    
+                	printf "Thank you\n";
+                    newHome="${home}"; 
+                    runmore=false;
+                else
+                    printf "You need to start with http:// or https://\n";
+                    runmore=true;
+                fi  
+    	done
+    	checkInput $newURL $newHome;
 }
 
 ########################################
@@ -167,109 +167,127 @@ runmore=true;
 ########################################
 
 function setpass(){
-#display list of users and their ID's
-mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "SELECT ID, user_login, user_pass, user_status, display_name FROM ${prefix}users;"
-#while loop to run through menu
-editpass=true;
-while [ "$editpass" == true ]
-do
-	#ask if they want to edit password or exit
-	printf "Are you sure you want to set a new password? y/n: ";
-	read proceed;
-		if [ "$proceed" == "y" ];
-		then
-		## ask which ID they want to effect
-			valid=false
-			while [ "$valid" == false ]
-			do
-				printf "Enter in the ID number or q to quit: ";
-				read idNum;
-					if [ "$idNum" == "q" ];
-					then
-						break;
-					elif [ "$idNum" == "" ];
-					then
-						echo "You need to enter in a value";
-					elif [[ "$idNum" -gt "0" ]];
-					then
-  						if [[ "$idNum" -lt "50" ]];
-  						then
-    						echo "number is valid";
-							valid=true;
-  						else
-    						echo "Enter in a valid number";
-  						fi
-					else
-  						echo "I think you need to try again.";
-					fi
-			done
-		## ask for the new password
-			goodPass=false
-				while [ "$goodPass" != true ]
-				do
-					printf "Enter in new password: ";
-					read newPass;
-						if [ "$newPass" == "" ];
-						then
-							echo "You need to enter in a value";
-						elif [ "$newPass" == "q" ];
-						then
-							editpass=false;
-							break;
-						else
-							goodPass=true;
-						fi
-					read -p "Enter in new password again: " verPass;
-						if [ "$verPass" == "$newPass" ];
-						then
-							echo "Values match";
-							#create hash from newPass
-							hash="$(echo -n "$newPass" | md5sum )"; hash="$(echo "$hash" | awk -F" " '{print $1}')";
-							#passHash=$(echo -n “$newPass” | md5sum | awk -F" " '{print $1}');
-							echo "${hash}....";
-							## enter in MySQL command
-							mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "UPDATE ${prefix}users SET user_pass='${hash}' where ID='$idNum';"
-							goodPass=true;
-							editpass=false;
-						else
-							echo "Passwords did not match. Try again:"
-							goodPass=false;
-						fi
-				done
-		elif [ "$proceed" == "" ];
-		then
-			echo "You need to enter in a response. Please try again: ";
-		else
-			echo "Back to main menu";
-			read -t 1 r;
-			editpass=false;
-		fi
-done
+    #display list of users and their ID's
+    mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "SELECT ID, user_login, user_pass, user_status, display_name FROM ${prefix}users;"
+    #while loop to run through menu
+    editpass=true;
+    while [ "$editpass" == true ]
+    do
+    	#ask if they want to edit password or exit
+    	printf "Are you sure you want to set a new password? y/n: ";
+    	read proceed;
+    		if [ "$proceed" == "y" ];
+    		then
+    		## ask which ID they want to effect
+    			valid=false
+    			while [ "$valid" == false ]
+    			do
+    				printf "Enter in the ID number or q to quit: ";
+    				read idNum;
+    					if [ "$idNum" == "q" ];
+    					then
+    						break;
+    					elif [ "$idNum" == "" ];
+    					then
+    						echo "You need to enter in a value";
+    					elif [[ "$idNum" -gt "0" ]];
+    					then
+      						if [[ "$idNum" -lt "50" ]];
+      						then
+        						echo "number is valid";
+    							valid=true;
+      						else
+        						echo "Enter in a valid number";
+      						fi
+    					else
+      						echo "I think you need to try again.";
+    					fi
+    			done
+    		## ask for the new password
+    			goodPass=false
+    				while [ "$goodPass" != true ]
+    				do
+    					printf "Enter in new password: ";
+    					read newPass;
+    						if [ "$newPass" == "" ];
+    						then
+    							echo "You need to enter in a value";
+    						elif [ "$newPass" == "q" ];
+    						then
+    							editpass=false;
+    							break;
+    						else
+    							goodPass=true;
+    						fi
+    					read -p "Enter in new password again: " verPass;
+    						if [ "$verPass" == "$newPass" ];
+    						then
+    							echo "Values match";
+    							#create hash from newPass
+    							hash="$(echo -n "$newPass" | md5sum )"; hash="$(echo "$hash" | awk -F" " '{print $1}')";
+    							#passHash=$(echo -n “$newPass” | md5sum | awk -F" " '{print $1}');
+    							echo "${hash}....";
+    							## enter in MySQL command
+    							mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "UPDATE ${prefix}users SET user_pass='${hash}' where ID='$idNum';"
+    							goodPass=true;
+    							editpass=false;
+    						else
+    							echo "Passwords did not match. Try again:"
+    							goodPass=false;
+    						fi
+    				done
+    		elif [ "$proceed" == "" ];
+    		then
+    			echo "You need to enter in a response. Please try again: ";
+    		else
+    			echo "Back to main menu";
+    			read -t 1 r;
+    			editpass=false;
+    		fi
+    done
 }
+
+########################################
+#########    SITE CLONE    #############
+########################################
+: ' function siteClone(){
+    #let the user know that they need to set up a DB and dbUser first
+    
+    
+    cat <<- _EOF_
+    Would you like to clone your site to.
+    a: subdomain (ex: dev.yourdomain.com)
+    b: subdirectory (ex: yourdomain.com/subdirectory)
+    _EOF_
+    read -p "Please enter your selection: " cloneChoice;
+    
+    #let the user know they need to 
+    
+}'
 
 ########################################
 #######  CREATE NEW WP USER  ###########
 ########################################
 function newUser(){
-wpUserSet=true;
-loop2=true
-while [ ${loop2} == 'true' ];
-do
-#get the user's email address
-    read -p "please enter in an email address for this user: " userSetEmail;
-        case userSetEmail in
-            "") printf "Please try again\n";;
-            *) printf "Thank you.\n";
-               loop2=false;;
-        esac
-done
-#create hash based off of current date 
-rand=`date|md5sum|md5sum`;
-mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "INSERT INTO wp_users (user_login,user_pass,user_nicename,user_email,user_url,user_activation_key,user_status,display_name) VALUES ('wp_test${rand:15:5}',MD5('${rand:5:10}'),'wp_test${rand:15:5}','${userSetEmail}','','','0','Testing Account');INSERT INTO wp_usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM wp_users WHERE user_login='wp_test${rand:15:5}'),'wp_capabilities','a:1:{s:13:\"administrator\";b:1;}');INSERT INTO wp_usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM wp_users WHERE user_login='wp_test${rand:15:5}'),'wp_user_level','10');";
-
-newWpUser="wp_test${rand:15:5}";
-printf "\nSQL has been run, username is wp_test${rand:15:5} and password is ${rand:5:10}\n\n"; #Press enter to remove the user...\n";
-unset rand;
+    wpUserSet=true;
+    loop2=true
+        while [ ${loop2} == 'true' ];
+        do
+        #get the user's email address
+            read -p "please enter in an email address for this user: " userSetEmail;
+                case userSetEmail in
+                    "") printf "Please try again\n";;
+                    *) printf "Thank you.\n";
+                       loop2=false;;
+                esac
+        done
+    #create hash based off of current date 
+    rand=`date|md5sum|md5sum`;
+    mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "INSERT INTO wp_users (user_login,user_pass,user_nicename,user_email,user_url,user_activation_key,user_status,display_name) VALUES ('wp_test${rand:15:5}',MD5('${rand:5:10}'),'wp_test${rand:15:5}','${userSetEmail}','','','0','Testing Account');INSERT INTO wp_usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM wp_users WHERE user_login='wp_test${rand:15:5}'),'wp_capabilities','a:1:{s:13:\"administrator\";b:1;}');INSERT INTO wp_usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM wp_users WHERE user_login='wp_test${rand:15:5}'),'wp_user_level','10');";
+    
+    newWpUser="wp_test${rand:15:5}";
+    printf "\nSQL has been run, username is wp_test${rand:15:5} and password is ${rand:5:10}\n\n"; #Press enter to remove the user...\n";
+    unset rand;
 }
 
 #delete the newly created user
@@ -293,24 +311,28 @@ function setURL(){
 }
 
 function checkDBSize(){
-        mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "SELECT table_name 'Table', table_rows 'Rows', data_length 'Data Length', index_length 'Index Length', round(((data_length + index_length) / 1024 / 1024),2) 'Size in MB' FROM information_schema.TABLES WHERE table_schema = '$dbName';";
-		mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "SELECT table_schema 'Database', sum( data_length + index_length) / 1024 / 1024 'Size in MB' FROM information_schema.TABLES WHERE table_schema = '$dbName';"
+    mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "SELECT table_name 'Table', table_rows 'Rows', data_length 'Data Length', index_length 'Index Length', round(((data_length + index_length) / 1024 / 1024),2) 'Size in MB' FROM information_schema.TABLES WHERE table_schema = '$dbName';";
+	mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "SELECT table_schema 'Database', sum( data_length + index_length) / 1024 / 1024 'Size in MB' FROM information_schema.TABLES WHERE table_schema = '$dbName';"
 }
 
 function disablePlugin(){
-		mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "UPDATE wp_options SET option_value = 'a:0:{}' WHERE option_name = 'active_plugins';";
-		printf "\nYour plug-ins have been disabled.\n";
+	mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "UPDATE wp_options SET option_value = 'a:0:{}' WHERE option_name = 'active_plugins';";
+	printf "\nYour plug-ins have been disabled.\n";
 }
 
 function dbBackup(){
-		date=$(date +%Y-%m-%d);
-		sqlName=$(echo $dbName | awk -F"_" '{print $2}');
-			mysqldump --add-drop-table -u $dbUser -h $siteID --password=$dbPass $dbName > ${sqlName}${date}.sql ;
-		printf "\n\nYour database has been exported to ${sqlName}${date}.sql\n";
+	date=$(date +%Y-%m-%d);
+	sqlName=$(echo $dbName | awk -F"_" '{print $2}');
+	mysqldump --add-drop-table -u $dbUser -h $siteID --password=$dbPass $dbName > ${sqlName}${date}.sql ;
+	printf "\n\nYour database has been exported to ${sqlName}${date}.sql\n";
 }
 
 function repairDB(){
-		mysqlcheck -ca --auto-repair -o -u $dbUser -h $siteID --password=$dbPass $dbName ;
+	mysqlcheck -ca --auto-repair -o -u $dbUser -h $siteID --password=$dbPass $dbName;
+}
+
+function interactiveShell(){
+    mysql -h $siteID -u $dbUser --password=$dbPass $dbName;
 }
 
 ##################################################
@@ -387,44 +409,46 @@ RewriteRule . /index.php [L]
 
 function dbConnect(){
 	keepRun=true;
-		while [ $keepRun ]
-		do
-			printf "\nWhat would you like to do?\n";
-			cat <<- _EOF_
-			(a) Check siteurl and home:
-			(b) Update siteurl and home:
-			(c) Reset admin password:
-			(d) Create a temp WordPress user:
-			(e) Default .htaccess file with permalinks:
-			(f) Create database backup:
-			(g) Check database size:
-			(h) Disable all plugins:
-			(i) Create phpinfo page:
-			(j) Repair/Optimize database:
-			(q) Exit:
-			    
-			Please enter your selection:
-			_EOF_
-				read choice;
-			case $choice in
-			    "a"|"A") getURL;;
-			    "b"|"B") getLocation;;
-                	    "c"|"C") setpass;;
-			    "d"|"D") newUser;;
-			    "e"|"E") htaccessDefault;;
-			    "f"|"F") dbBackup;;
-			    "g"|"G") checkDBSize;;
-			    "h"|"H") disablePlugin;;
-			    "i"|"I") phpInfo;;
-			    "j"|"J") repairDB;;
-				#"k"|"K") interactiveShell;;
-                	    "q"|"Q") echo "You are about to exit dude...";
-				read -t 1 nothing;
-				rmScript;
-				exit;;
-			    *) echo "WHAT!?!?! I don't see an option for that. Try again please.";;
-			esac
-		done	
+	while [ $keepRun ]
+	do
+		printf "\nWhat would you like to do?\n";
+		cat <<- _EOF_
+		(a) Check siteurl and home:
+		(b) Update siteurl and home:
+		(c) Reset admin password:
+		(d) Create a temp WordPress user:
+		(e) Check database size:
+		(f) Create database backup:
+		(g) Repair/Optimize database:
+		(h) Disable all plugins:
+		(i) Connect to MySQL:
+		(j) Default .htaccess file with permalinks:
+		(k) Create phpinfo page:
+		(q) Exit:
+		    
+		Please enter your selection:
+		_EOF_
+			read choice;
+		case $choice in
+		    "a"|"A") getURL;;
+		    "b"|"B") getLocation;;
+            	    "c"|"C") setpass;;
+		    "d"|"D") newUser;;
+		    "e"|"E") checkDBSize;;
+		    "f"|"F") dbBackup;;
+		    "g"|"G") repairDB;;
+		    "h"|"H") disablePlugin;;
+		    "i"|"I") interactiveShell;;
+		    "j"|"J") htaccessDefault;;
+		    "k"|"K") phpInfo;;
+		    #"l"|"L") siteClone;;
+            	    "q"|"Q") echo "You are about to exit dude...";
+			read -t 1 nothing;
+			rmScript;
+			exit;;
+		    *) echo "WHAT!?!?! I don't see an option for that. Try again please.";;
+		esac
+	done	
 }
 
 
@@ -459,19 +483,19 @@ function listDomains(){
 }
 
 function cmsType(){
-       cmsFile=$(find ./ -maxdepth 2 -type f -name wp-config.php 2> /dev/null);
-            if [ "$cmsFile" == "" ];then
-                echo "no wp-config.php found. Search for different CMS";
-			elif [ "$cmsFile" == "./wp-config.php" ];then
-			#	touch testFile;
-				wpScript;
-            elif [ "$cmsFile" == "./html/wp-config.php" ];then
-				cd html;
-			#	touch testFile;
-				wpScript;
-			else
-            	echo "Nothing was located. Oops.";    
-            fi
+    cmsFile=$(find ./ -maxdepth 2 -type f -name wp-config.php 2> /dev/null);
+    if [ "$cmsFile" == "" ];then
+        echo "no wp-config.php found. Search for different CMS";
+	elif [ "$cmsFile" == "./wp-config.php" ];then
+	#	touch testFile;
+		wpScript;
+    elif [ "$cmsFile" == "./html/wp-config.php" ];then
+		cd html;
+	#	touch testFile;
+		wpScript;
+	else
+    	echo "Nothing was located. Oops.";    
+    fi
 }    
 
 function listDomains(){
@@ -489,10 +513,10 @@ function listDomains(){
 	cmsType;
 }
 
-#set -x
-#run a while loop for the inital menu asking for the domain. 
-setD;
-runagain=true;
+    #set -x
+    #run a while loop for the inital menu asking for the domain. 
+    setD;
+    runagain=true;
     while [ "$runagain" == true ]
     do
         echo "Enter in the domain name you want to alter:";
@@ -518,3 +542,4 @@ runagain=true;
 		esac
 
 	done
+

@@ -283,16 +283,17 @@ function newUser(){
         done
     #create hash based off of current date 
     rand=`date|md5sum|md5sum`;
-    mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "INSERT INTO wp_users (user_login,user_pass,user_nicename,user_email,user_url,user_activation_key,user_status,display_name) VALUES ('wp_test${rand:15:5}',MD5('${rand:5:10}'),'wp_test${rand:15:5}','${userSetEmail}','','','0','Testing Account');INSERT INTO wp_usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM wp_users WHERE user_login='wp_test${rand:15:5}'),'wp_capabilities','a:1:{s:13:\"administrator\";b:1;}');INSERT INTO wp_usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM wp_users WHERE user_login='wp_test${rand:15:5}'),'wp_user_level','10');";
+    newWpUser="${prefix}${rand:15:5}";
+    mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "INSERT INTO ${prefix}users (user_login,user_pass,user_nicename,user_email,user_url,user_activation_key,user_status,display_name) VALUES ('${newWpUser}',MD5('${rand:5:10}'),'${newWpUser}','${userSetEmail}','','','0','Testing Account');INSERT INTO ${prefix}usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM ${prefix}users WHERE user_login='${newWpUser}'),'${prefix}capabilities','a:1:{s:13:\"administrator\";b:1;}');INSERT INTO ${prefix}usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM ${prefix}users WHERE user_login='${newWpUser}'),'${prefix}user_level','10');";
     
-    newWpUser="wp_test${rand:15:5}";
-    printf "\nSQL has been run, username is wp_test${rand:15:5} and password is ${rand:5:10}\n\n"; #Press enter to remove the user...\n";
+    #newWpUser="${prefix}${rand:15:5}";
+    printf "\nSQL has been run, username is ${newWpUser} and password is ${rand:5:10}\n\n"; #Press enter to remove the user...\n";
     unset rand;
 }
 
 #delete the newly created user
 function delNewWpUser(){
-	mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "DELETE FROM wp_usermeta WHERE user_id=(SELECT ID FROM wp_users WHERE user_login='$newWpUser'); DELETE FROM wp_users WHERE user_login='$newWpUser' LIMIT 1;";	
+	mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "DELETE FROM ${prefix}usermeta WHERE user_id=(SELECT ID FROM ${prefix}users WHERE user_login='$newWpUser'); DELETE FROM ${prefix}users WHERE user_login='$newWpUser' LIMIT 1;";	
 	#clean up the variable
 	unset $newWpUser
 }
@@ -307,7 +308,7 @@ function getURL(){
 } 
 
 function setURL(){
-	mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "UPDATE ${prefix}options SET option_value='$1' WHERE option_name='siteurl'; UPDATE ${prefix}options SET option_value='$2' WHERE option_name='home'; "
+	mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "UPDATE ${prefix}options SET option_value='$1' WHERE option_name='siteurlm'; UPDATE ${prefix}options SET option_value='$2' WHERE option_name='home'; "
 }
 
 function checkDBSize(){
@@ -316,7 +317,7 @@ function checkDBSize(){
 }
 
 function disablePlugin(){
-	mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "UPDATE wp_options SET option_value = 'a:0:{}' WHERE option_name = 'active_plugins';";
+	mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "UPDATE ${prefix}options SET option_value = 'a:0:{}' WHERE option_name = 'active_plugins';";
 	printf "\nYour plug-ins have been disabled.\n";
 }
 
@@ -432,17 +433,17 @@ function dbConnect(){
 		case $choice in
 		    "a"|"A") getURL;;
 		    "b"|"B") getLocation;;
-            	    "c"|"C") setpass;;
-		    "d"|"D") newUser;;
+                    "c"|"C") setpass;;
+			"d"|"D") newUser;;
 		    "e"|"E") checkDBSize;;
 		    "f"|"F") dbBackup;;
 		    "g"|"G") repairDB;;
 		    "h"|"H") disablePlugin;;
 		    "i"|"I") interactiveShell;;
 		    "j"|"J") htaccessDefault;;
-		    "k"|"K") phpInfo;;
-		    #"l"|"L") siteClone;;
-            	    "q"|"Q") echo "You are about to exit dude...";
+			"k"|"K") phpInfo;;
+			#"l"|"L") siteClone;;
+                    "q"|"Q") echo "You are about to exit dude...";
 			read -t 1 nothing;
 			rmScript;
 			exit;;

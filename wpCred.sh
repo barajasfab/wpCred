@@ -484,7 +484,7 @@ function listDomains(){
 }
 
 function cmsType(){
-    cmsFile=$(find ./html/ -maxdepth 2 -type f -name wp-config.php 2> /dev/null);
+    cmsFile=$(find ./html/ -maxdepth 1 -type f -name wp-config.php 2> /dev/null);
     if [ "$cmsFile" == "" ];then
         echo "no wp-config.php found. Search for different CMS";
 	elif [ "$cmsFile" == "./wp-config.php" ];then

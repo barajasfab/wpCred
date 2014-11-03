@@ -3,15 +3,17 @@ wpCred
 
 Get wp-config.php file details and options for the following:
 
-1. View siteurl and home
-2. Edit the siteurl and home
-3. Edit a WordPress user's password by listed ID number in the database
-4. Set up a .htaccess file with default WordPress rewrite rules
-5. Create a database backup
-6. Check database size along with tables size and number of rows per table
-7. Disable all plug-ins
-8. Create a php info page
-9. Repair and optimize database
+(a) Check siteurl and home:
+(b) Update siteurl and home:
+(c) Reset admin password:
+(d) Create a temp WordPress user:
+(e) Check database size:
+(f) Create database backup:
+(g) Repair/Optimize database:
+(h) Disable all plugins:
+(i) Connect to MySQL:
+(j) Default .htaccess file with permalinks:
+(k) Create phpinfo page:
 
 You can grab the scrtipt and run it directly on the server by running the following:
 wget http://dl.trekmode.com/wpCred.sh && sh ./wpCred.sh

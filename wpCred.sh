@@ -292,7 +292,7 @@ function newUser(){
 
 #delete the newly created user
 function delNewWpUser(){
-	mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "DELETE FROM wp_usermeta WHERE user_id=(SELECT ID FROM wp_users WHERE user_login='$newWpUser'); DELETE FROM wp_users WHERE user_login='$newWpUser' LIMIT 1;";	
+	mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "DELETE FROM ${prefix}usermeta WHERE user_id=(SELECT ID FROM ${prefix}users WHERE user_login='$newWpUser'); DELETE FROM ${prefix}users WHERE user_login='$newWpUser' LIMIT 1;";	
 	#clean up the variable
 	unset $newWpUser
 }

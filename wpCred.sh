@@ -283,7 +283,7 @@ function newUser(){
         done
     #create hash based off of current date 
     rand=`date|md5sum|md5sum`;
-    mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "INSERT INTO ${prefix}users (user_login,user_pass,user_nicename,user_email,user_url,user_activation_key,user_status,display_name) VALUES ('wp_test${rand:15:5}',MD5('${rand:5:10}'),'wp_test${rand:15:5}','${userSetEmail}','','','0','Testing Account');INSERT INTO ${prefix}usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM ${prefix}users WHERE user_login='wp_test${rand:15:5}'),'wp_capabilities','a:1:{s:13:\"administrator\";b:1;}');INSERT INTO ${prefix}usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM ${prefix}users WHERE user_login='wp_test${rand:15:5}'),'wp_user_level','10');";
+    mysql -u $dbUser -h $siteID --password=$dbPass $dbName -e "INSERT INTO ${prefix}users (user_login,user_pass,user_nicename,user_email,user_url,user_activation_key,user_status,display_name) VALUES ('wp_test${rand:15:5}',MD5('${rand:5:10}'),'wp_test${rand:15:5}','${userSetEmail}','','','0','Testing Account');INSERT INTO ${prefix}usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM ${prefix}users WHERE user_login='wp_test${rand:15:5}'),'wp_capabilities','a:1:{s:13:\"administrator\";b:1;}');INSERT INTO ${prefix}usermeta (user_id,meta_key,meta_value) VALUES ((SELECT ID FROM ${prefix}users WHERE user_login='wp_test${rand:15:5}'),'${prefix}user_level','10');";
     
     newWpUser="wp_test${rand:15:5}";
     printf "\nSQL has been run, username is wp_test${rand:15:5} and password is ${rand:5:10}\n\n"; #Press enter to remove the user...\n";

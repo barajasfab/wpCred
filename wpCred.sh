@@ -15,152 +15,152 @@ function rmScript(){
 
 #set -x
 function wpScript(){
-## get tempSiteID
-tempSiteID=$(echo $HOME | awk -F"/" '{print $3}');
+				## get tempSiteID
+				tempSiteID=$(echo $HOME | awk -F"/" '{print $3}');
 
-## set the dbHost back to internal-db.sxxxxxx.gridserver.com
-siteID="internal-db.s${tempSiteID}.gridserver.com";
+				## set the dbHost back to internal-db.sxxxxxx.gridserver.com
+				siteID="internal-db.s${tempSiteID}.gridserver.com";
 
-dbName=$(cat wp-config.php | grep "DB_NAME" | awk -F"'" '{print $4}')
-dbUser=$(cat wp-config.php | grep "DB_USER" | awk -F"'" '{print $4}')
-dbPass=$(cat wp-config.php | grep "DB_PASSWORD" | awk -F"'" '{print $4}')
-dbHost=$(grep -P -io "(localhost(:3306|)|[$]_ENV{('|)DATABASE_SERVER('|)}|(int|ext)ernal-db.s${tempSiteID}.gridserver.com)" wp-config.php);
+				dbName=$(cat wp-config.php | grep "DB_NAME" | awk -F"'" '{print $4}')
+				dbUser=$(cat wp-config.php | grep "DB_USER" | awk -F"'" '{print $4}')
+				dbPass=$(cat wp-config.php | grep "DB_PASSWORD" | awk -F"'" '{print $4}')
+				dbHost=$(grep -P -io "(localhost(:3306|)|[$]_ENV{('|)DATABASE_SERVER('|)}|(int|ext)ernal-db.s${tempSiteID}.gridserver.com)" wp-config.php);
 
 #####################################
 ###  Switch DB host in wp-config  ###
 #####################################
-function switchDB(){
-	sed -i "/.*DB_HOST.*/c\define('DB_HOST','${siteID}');" ./wp-config.php;
-}
+				function switchDB(){
+					sed -i "/.*DB_HOST.*/c\define('DB_HOST','${siteID}');" ./wp-config.php;
+				}
 
 #####################################
 #####  Create phpinfo page    #######
 #####################################
-function phpInfo(){
-		echo "<?php
-	phpinfo();
-?>" > ./phpinfo.php
-}
+				function phpInfo(){
+						echo "<?php
+					phpinfo();
+				?>" > ./phpinfo.php
+				}
 
 ######################################
 ### used to output current DB host ###
 ######################################
-function databaseOutput(){
-    ## create case statments
-    case $dbHost in
-        "localhost"|"localhost:3306") echo "DB_HOST is currently set as $dbHost. You should really change that."
-            runMore=true;
-    		while [ "$runMore" == true ]
-    		do
-    		   read -p "Would you like to switch it to ${siteID}: y\n?" switch;
-    			if [ "$switch" == "y" ]; then
-    				runMore=false;
-    				switchDB;
-    			elif [ "$switch" == "n" ]; then
-    				printf "Ok, but it may not work properly.\n";
-    				runMore=false;
-    			else
-    				printf "Please enter in a valid choice.";
-    			fi
-    		done;;
-        "\$_ENV{DATABASE_SERVER}"|"\$_ENV{'DATABASE_SERVER'}"|"internal-db.s${tempSiteID}.gridserver.com"|"external-db.s${tempSiteID}.gridserver.com") echo "DB_HOST is currently set as $dbHost.";;
-        "") echo "You may need to check your DB_HOST setting";;
-    esac
-}
+				function databaseOutput(){
+						## create case statments
+						case $dbHost in
+								"localhost"|"localhost:3306") echo "DB_HOST is currently set as $dbHost. You should really change that."
+										runMore=true;
+								while [ "$runMore" == true ]
+								do
+									 read -p "Would you like to switch it to ${siteID}: y\n?" switch;
+									if [ "$switch" == "y" ]; then
+										runMore=false;
+										switchDB;
+									elif [ "$switch" == "n" ]; then
+										printf "Ok, but it may not work properly.\n";
+										runMore=false;
+									else
+										printf "Please enter in a valid choice.";
+									fi
+								done;;
+								"\$_ENV{DATABASE_SERVER}"|"\$_ENV{'DATABASE_SERVER'}"|"internal-db.s${tempSiteID}.gridserver.com"|"external-db.s${tempSiteID}.gridserver.com") echo "DB_HOST is currently set as $dbHost.";;
+								"") echo "You may need to check your DB_HOST setting";;
+						esac
+				}
 
 
-### get the table prefix
-prefix=$(grep "table_prefix" wp-config.php | awk -F"'" '{print $2}');
-optionstable="options";
+				### get the table prefix
+				prefix=$(grep "table_prefix" wp-config.php | awk -F"'" '{print $2}');
+				optionstable="options";
 
-#display currently set creds
-echo ---------------------------------------------------------
-echo Current DB Name: $dbName 
-echo ---------------------------------------------------------
-echo Current DB User: $dbUser
-echo ---------------------------------------------------------
-echo Current DB Pass: $dbPass
-echo ---------------------------------------------------------
-echo Current DB Host: $dbHost
-echo ---------------------------------------------------------
-echo Current DB prefix: $prefix
-echo ---------------------------------------------------------
+				#display currently set creds
+				echo ---------------------------------------------------------
+				echo Current DB Name: $dbName 
+				echo ---------------------------------------------------------
+				echo Current DB User: $dbUser
+				echo ---------------------------------------------------------
+				echo Current DB Pass: $dbPass
+				echo ---------------------------------------------------------
+				echo Current DB Host: $dbHost
+				echo ---------------------------------------------------------
+				echo Current DB prefix: $prefix
+				echo ---------------------------------------------------------
 
-databaseOutput;
+				databaseOutput;
 
 ########################################
 #######   COMPARE NEW INPUT   ##########
 ########################################
 
-function checkInput(){
-    loopAgain=true;
-	while [ "$loopAgain" == true ]
-	do	
-		if [ "$1" == "$2" ];
-		then
-			printf "\nBoth inputs match. New siteurl and home are set to $newURL\n";
-			printf "You are sure you want to proceed? y/n:";
-			read a;
-				if [ "$a" == "y" ];
-				then
-					setURL $newURL $newHome;
-					loopAgain=false;
-				else
-					getLocation;
-				fi
-		else
-			printf "\nThe inputs do not match. Did you want to set\n";
-			printf "siturl: $newURL\nhome: $newHome\n";
-			printf "Are sure you want to proceed? y/n:";
-			read a;
-				if [ "$a" == "y" ];
-				then
-					setURL $newURL $newHome;
-					loopAgain=false;
-				else
-					getLocation;
-				fi
-		fi
-	done
-}
+				function checkInput(){
+						loopAgain=true;
+					while [ "$loopAgain" == true ]
+					do	
+						if [ "$1" == "$2" ];
+						then
+							printf "\nBoth inputs match. New siteurl and home are set to $newURL\n";
+							printf "You are sure you want to proceed? y/n:";
+							read a;
+								if [ "$a" == "y" ];
+								then
+									setURL $newURL $newHome;
+									loopAgain=false;
+								else
+									getLocation;
+								fi
+						else
+							printf "\nThe inputs do not match. Did you want to set\n";
+							printf "siturl: $newURL\nhome: $newHome\n";
+							printf "Are sure you want to proceed? y/n:";
+							read a;
+								if [ "$a" == "y" ];
+								then
+									setURL $newURL $newHome;
+									loopAgain=false;
+								else
+									getLocation;
+								fi
+						fi
+					done
+				}
 
 ########################################
 #####  GET NEW SITEURL AND HOME  #######
 ########################################
 
-function getLocation(){
-    runagain=true;
-    	while [ $runagain == true ]
-    	do  
-    		printf "Enter in the new siteurl:";
-    		read siteurl;
-            	if [[ "$siteurl" == https://* ]] || [[ "$siteurl" == http://* ]]; 
-            	then
-                	printf "Thank you\n";
-                	newURL="${siteurl}";    
-                	runagain=false;
-                else
-                	printf "ERROR! You need to start with http:// or https://\n";
-                	runagain=true;
-                fi  
-    	done
-    runmore=true;
-    	while [ $runmore == true ]
-    	do  
-        	printf "\nEnter in the new home:";
-            read home;
-        		if [[ "$home" == https://* ]] || [[ "$home" == http://* ]]; 
-                then    
-                	printf "Thank you\n";
-                    newHome="${home}"; 
-                    runmore=false;
-                else
-                    printf "You need to start with http:// or https://\n";
-                    runmore=true;
-                fi  
-    	done
-    	checkInput $newURL $newHome;
-}
+				function getLocation(){
+						runagain=true;
+							while [ $runagain == true ]
+							do  
+								printf "Enter in the new siteurl:";
+								read siteurl;
+											if [[ "$siteurl" == https://* ]] || [[ "$siteurl" == http://* ]]; 
+											then
+													printf "Thank you\n";
+													newURL="${siteurl}";    
+													runagain=false;
+												else
+													printf "ERROR! You need to start with http:// or https://\n";
+													runagain=true;
+												fi  
+							done
+						runmore=true;
+							while [ $runmore == true ]
+							do  
+									printf "\nEnter in the new home:";
+										read home;
+										if [[ "$home" == https://* ]] || [[ "$home" == http://* ]]; 
+												then    
+													printf "Thank you\n";
+														newHome="${home}"; 
+														runmore=false;
+												else
+														printf "You need to start with http:// or https://\n";
+														runmore=true;
+												fi  
+							done
+							checkInput $newURL $newHome;
+				}
 
 ########################################
 #####  GET AND SET NEW WP PASS  ########
